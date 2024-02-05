@@ -1,11 +1,14 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit,  ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import * as ace from 'ace-builds';
 
 @Component({
   selector: 'app-board',
   templateUrl: './board.component.html',
   styleUrls: ['./board.component.scss']
 })
-export class BoardComponent implements OnInit {
+export class BoardComponent implements OnInit, AfterViewInit {
+
+  @ViewChild('editor') private editor!: ElementRef;
 
   boardState: number[][] = [...Array(6)].map(() => Array(7).fill(0));
   currentPlayer: number = 1;
@@ -15,9 +18,24 @@ export class BoardComponent implements OnInit {
   previewPiece: boolean = false;
   previewPieceStyle = {};
   showRestartButton: boolean = false;
+
   constructor(private cdr: ChangeDetectorRef) { }
 
   ngOnInit(): void {
+  }
+
+  ngAfterViewInit(): void {
+    const aceEditor = ace.edit(this.editor.nativeElement);
+    aceEditor.session.setMode('ace/mode/css');
+    aceEditor.setTheme('ace/theme/monokai');
+
+    const cssTemplate = `/* Enter your CSS code to start playing */\n /* Example: */\n  /* grid-row: 2; */\n  /* grid-column: 3; */ \n\n.piece {\n  \n}`;
+
+    aceEditor.session.setValue(this.playerInput || cssTemplate);
+
+    aceEditor.session.on('change', () => {
+      this.playerInput = aceEditor.getValue();
+    });
   }
 
   dropPiece(colIndex: number) {
@@ -172,20 +190,33 @@ export class BoardComponent implements OnInit {
   }
 
   parseCSSInput(input: string): { gridRow: number | null, gridColumn: number | null, gridRowStart: number | null, gridRowEnd: number | null, gridColumnStart: number | null, gridColumnEnd: number | null } {
-    const gridRowMatch = input.match(/grid-row:\s*(\d+)/);
-    const gridColumnMatch = input.match(/grid-column:\s*(\d+)/);
-    const gridRowStartMatch = input.match(/grid-row-start:\s*(\d+)/);
-    const gridRowEndMatch = input.match(/grid-row-end:\s*(\d+)/);
-    const gridColumnStartMatch = input.match(/grid-column-start:\s*(\d+)/);
-    const gridColumnEndMatch = input.match(/grid-column-end:\s*(\d+)/);
-
-    const gridRow = gridRowMatch ? parseInt(gridRowMatch[1]) : null;
-    const gridColumn = gridColumnMatch ? parseInt(gridColumnMatch[1]) : null;
-    const gridRowStart = gridRowStartMatch ? parseInt(gridRowStartMatch[1]) : null;
-    const gridRowEnd = gridRowEndMatch ? parseInt(gridRowEndMatch[1]) : null;
-    const gridColumnStart = gridColumnStartMatch ? parseInt(gridColumnStartMatch[1]) : null;
-    const gridColumnEnd = gridColumnEndMatch ? parseInt(gridColumnEndMatch[1]) : null;
-
+    // Remove comments from the CSS string to avoid parsing information inside comments
+    const cssWithoutComments = input.replace(/\/\*[\s\S]*?\*\//g, '');
+  
+    // Extract the .piece block, assuming there's only one
+    const pieceRegex = /\.piece\s*\{([^\}]+)\}/;
+    const pieceMatch = cssWithoutComments.match(pieceRegex);
+    let cssBlock = '';
+  
+    if (pieceMatch && pieceMatch[1]) {
+      cssBlock = pieceMatch[1];
+    }
+  
+    // Extract the CSS properties from the .piece block
+    const gridRowMatch = cssBlock.match(/grid-row:\s*(\d+)/);
+    const gridColumnMatch = cssBlock.match(/grid-column:\s*(\d+)/);
+    const gridRowStartMatch = cssBlock.match(/grid-row-start:\s*(\d+)/);
+    const gridRowEndMatch = cssBlock.match(/grid-row-end:\s*(\d+)/);
+    const gridColumnStartMatch = cssBlock.match(/grid-column-start:\s*(\d+)/);
+    const gridColumnEndMatch = cssBlock.match(/grid-column-end:\s*(\d+)/);
+  
+    const gridRow = gridRowMatch ? parseInt(gridRowMatch[1], 10) : null;
+    const gridColumn = gridColumnMatch ? parseInt(gridColumnMatch[1], 10) : null;
+    const gridRowStart = gridRowStartMatch ? parseInt(gridRowStartMatch[1], 10) : null;
+    const gridRowEnd = gridRowEndMatch ? parseInt(gridRowEndMatch[1], 10) : null;
+    const gridColumnStart = gridColumnStartMatch ? parseInt(gridColumnStartMatch[1], 10) : null;
+    const gridColumnEnd = gridColumnEndMatch ? parseInt(gridColumnEndMatch[1], 10) : null;
+  
     return { gridRow, gridColumn, gridRowStart, gridRowEnd, gridColumnStart, gridColumnEnd };
   }
 

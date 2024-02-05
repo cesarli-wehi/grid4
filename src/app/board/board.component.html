@@ -11,20 +11,16 @@
 </div>
 
 <div class="controls">
-  <input
+  <!-- <input
     type="text"
     [(ngModel)]="playerInput"
     placeholder="Enter CSS (e.g., 'grid-row: 2; grid-column: 3;')"
-  />
-  <button (click)="placePiece()">Place Piece</button>
+  /> -->
+  <div #editor id="editor" style="height: 150px; width: 100%;"></div>
+  <button class="placePiece" (click)="placePiece()">Place Piece</button>
 </div>
 
 <button *ngIf="showRestartButton" (click)="restartGame()">Restart Game</button>
-
-<div *ngIf="displayFireworks" class="fireworks">
-  <!-- Fireworks animation -->
-</div>
-grid-row:6; grid-column:1
 
 <h1>The Map</h1>
 <div class="grid-container">

@@ -33,7 +33,12 @@
             "styles": [
               "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [
+              "node_modules/ace-builds/src-min/ace.js",
+              "node_modules/ace-builds/src-min/mode-css.js",
+              "node_modules/ace-builds/src-min/theme-monokai.js",
+              "node_modules/ace-builds/src-min/worker-css.js"
+            ]
           },
           "configurations": {
             "production": {
